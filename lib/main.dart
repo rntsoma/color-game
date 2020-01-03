@@ -14,7 +14,10 @@ class _HomeState extends State<Home> {
 
     Solver solv = Solver(3);
     solv.generateBoard();
+    print("Print initial board:");
     solv.printMatrix();
+    print("Call solver");
+    solv.debugTrivialBoard();
 
     return Container(
       color: Colors.deepPurple,
