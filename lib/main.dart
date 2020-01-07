@@ -37,11 +37,21 @@ class _HomeState extends State<Home> {
   }
 
   Widget _createBoard(var _boardHeigth, var _boardWidth) {
-    return Column(
-      //for now, keep it as a single column with rows inside
-      children: <Widget>[
-        _coloredRowWidgetBuilder(_boardHeigth / 10, _boardWidth),
-      ],
+    List<Widget> _createRowList(var height, var width) {
+      List<Widget> rowList = [];
+      for(int i=0; i<9; i++){
+        rowList.add(_coloredRowWidgetBuilder(height, width));
+      }
+      return rowList;
+    }
+
+    return Padding(
+      padding: EdgeInsets.only(left: 5, right: 5),
+      child: Column(
+        //for now, keep it as a single column with rows inside
+        children: <Widget>[
+          _coloredRowWidgetBuilder(_boardHeigth / 10, _boardWidth - 10),
+      ),
     );
   }
 
@@ -49,22 +59,21 @@ class _HomeState extends State<Home> {
   Widget _coloredRowWidgetBuilder(var _rowHeight, _rowWidth) {
     print("Row heigth: $_rowHeight");
     print("Row width: $_rowWidth");
+
+    List<Widget> _createRowList(var height, var width) {
+      List<Widget> rowList = [];
+      for(int i=0; i<9; i++){
+        rowList.add(_singleColoredCellBuilder(height, width));
+      }
+      return rowList;
+    }
+
     return Container(
       child: Padding(
         //10 px from both margins
-        padding: EdgeInsets.only(right: 10, left: 10),
+        padding: EdgeInsets.only(right: 0, left: 0),
         child: Row(
-          children: <Widget>[
-            //force 8 elements to render, need to refactor this later on
-            _singleColoredCellBuilder(_rowHeight, _rowWidth / 10),
-            _singleColoredCellBuilder(_rowHeight, _rowWidth / 10),
-            _singleColoredCellBuilder(_rowHeight, _rowWidth / 10),
-            _singleColoredCellBuilder(_rowHeight, _rowWidth / 10),
-            _singleColoredCellBuilder(_rowHeight, _rowWidth / 10),
-            _singleColoredCellBuilder(_rowHeight, _rowWidth / 10),
-            _singleColoredCellBuilder(_rowHeight, _rowWidth / 10),
-            _singleColoredCellBuilder(_rowHeight, _rowWidth / 10),
-          ],
+          children: _createRowList(_rowHeight, _rowWidth/10)
         ),
       ),
       height: _rowHeight,
@@ -81,7 +90,7 @@ class _HomeState extends State<Home> {
     var _size = _cellHeight > _cellWidth ? _cellWidth : _cellHeight;
     //cells with 5 px of distance from each other
     return Padding(
-        padding: EdgeInsets.only(left: 5),
+        padding: EdgeInsets.only(left: 1),
         child: Column(
           children: <Widget>[
             SizedBox(
