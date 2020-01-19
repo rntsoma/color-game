@@ -9,6 +9,27 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
+  double _getSmallestDimension(var height, var width) {
+    double ret;
+
+    ret  = height > width ? width : height;
+    return ret;
+  }
+
+  bool _useHeigthDimention (var height, var width) {
+    bool ret;
+    ret = height > width ? true : false;
+
+    return ret;
+  }
+
+  double _getBoardSize(var constraints) {
+    if (_useHeigthDimention(constraints.maxHeight, constraints.maxWidth)) {
+      return constraints.maxHeight * 0.8;
+    }
+    return constraints.maxWidth * 0.8;
+  }
+
   @override
   Widget build(BuildContext context) {
     // Solver solv = Solver(3);
@@ -29,23 +50,19 @@ class _HomeState extends State<Home> {
                 padding: EdgeInsets.fromLTRB(5.0, 5.0, 5.0, 5.0),
                 child: LayoutBuilder(
                   builder: (context, constraints) {
-                    const lines = 10;
-                    var height = constraints.maxHeight;
-                    var width = constraints.maxWidth;
-                    var smallestDimension = height > width ? width : height;
-                    var _cellSize = smallestDimension/lines;
-                    print(constraints.maxWidth);
-                    print(constraints.maxHeight);
-                    return _createBoard(smallestDimension, _cellSize, lines);
+                    const lines = 20;
+                    var boardSize = _getBoardSize(constraints);
+                    var cellSize = _getSmallestDimension(constraints.maxHeight, constraints.maxWidth)/lines;
+                    return _createBoard(boardSize, cellSize, lines);
                   },
                 ))));
   }
 
-  Widget _createBoard(var _boardSize, var _cellSize, var _rowCellCount) {
+  Widget _createBoard(var boardSize, var cellSize, var rowCellCount) {
     List<Widget> _createRowList() {
       List<Widget> rowList = [];
-      for(int i=0; i<_rowCellCount; i++){
-        rowList.add(_coloredRowWidgetBuilder(_boardSize, _cellSize, _rowCellCount));
+      for(int i=0; i<rowCellCount; i++){
+        rowList.add(_coloredRowWidgetBuilder(boardSize, cellSize, rowCellCount));
       }
       return rowList;
     }
@@ -57,7 +74,7 @@ class _HomeState extends State<Home> {
   }
 
   //nested columns, creating a non scrollable grid
-  Widget _coloredRowWidgetBuilder(var _rowWidth, var _cellSize, var _cellCount) {
+  Widget _coloredRowWidgetBuilder(var rowWidth, var cellSize, var cellCount) {
     bool _flipColor = false;
 
     MaterialColor _changeColor(){
@@ -70,25 +87,25 @@ class _HomeState extends State<Home> {
 
     List<Widget> _createRowList() {
       List<Widget> rowList = [];
-      for (int i = 0; i < _cellCount; i++) {
-        rowList.add(_singleColoredCellBuilder(_cellSize, _changeColor()));
+      for (int i = 0; i < cellCount; i++) {
+        rowList.add(_singleColoredCellBuilder(cellSize, _changeColor()));
       }
       return rowList;
     }
 
     return Container(
       child: Row(children: _createRowList()),
-      height: _cellSize,
-      width: _rowWidth,
+      height: cellSize,
+      width: rowWidth,
     );
   }
 
-  Widget _singleColoredCellBuilder(var _cellSize, MaterialColor color) {
+  Widget _singleColoredCellBuilder(var cellSize, MaterialColor color) {
     return Column(
       children: <Widget>[
         SizedBox(
-            width: _cellSize,
-            height: _cellSize,
+            width: cellSize,
+            height: cellSize,
             child: DecoratedBox(
               decoration: BoxDecoration(color: color,
               border: Border.all(width: 1.0, color: Colors.white)
