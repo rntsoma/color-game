@@ -46,11 +46,16 @@ class _HomeState extends State<Home> {
   }
 
   Widget _createBoard(int lines, double cellSize) {
-    return GridView.count(
-      crossAxisCount: lines,
-      physics: NeverScrollableScrollPhysics(),
-      children: _createCells(lines * lines, cellSize),
-    );
+    return Column(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+      GridView.count(
+        crossAxisCount: lines,
+        shrinkWrap: true,
+        physics: NeverScrollableScrollPhysics(),
+        children: _createCells(lines * lines, cellSize),
+      ),
+      Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: _createControllers(5),)
+    ]);
   }
 
   List<Widget> _createCells(int cellCount, double cellSize) {
@@ -80,5 +85,22 @@ class _HomeState extends State<Home> {
       ),
       onTap: () => {print("Tapped cellIndex: $cellIndex")},
     );
+  }
+
+  List<Widget> _createControllers(int numColors) {
+    List<Widget> controls = List.generate(
+        numColors,
+        (int controlID) => GestureDetector(
+                  child: Container(
+                height: 50,
+                width: 50,
+                color: Colors.deepPurple,
+              ),
+              onTap: () async {
+                print("Control $controlID pressed");
+              },
+        ));
+
+    return controls;
   }
 }
