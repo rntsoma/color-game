@@ -10,12 +10,35 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   List<BoardCell> board = List();
+  List<CellController> controllers = List();
 
   double _getSmallestDimension(var height, var width) {
     double ret;
 
     ret = height > width ? width : height;
     return ret;
+  }
+
+  void _createBoard(double cellSize){
+    for (int i=0; i<100; i++) {
+      board.add(BoardCell(i, Colors.deepPurple, cellSize));
+    }
+  }
+
+  Color _getColor(int offset) {
+    List<Color> colors = [Colors.red, Colors.green,
+      Colors.blue, Colors.purple, Colors.orange];
+    return colors[offset];
+  }
+
+  void _createControllers(int count, Function buttonCb) {
+    for (int i=0; i<count; i++){
+      controllers.add(CellController(i, _getColor(i), buttonCb));
+    }
+  }
+
+  void buttonCb(){
+    print("buttonCb called");
   }
 
   @override
@@ -27,9 +50,7 @@ class _HomeState extends State<Home> {
     // print("Call solver");
     // solv.debugTrivialBoard();
 
-    for (int i=0; i<100; i++) {
-      board.add(BoardCell(i));
-    }
+    const lines = 10;
 
     return MaterialApp(
         home: Scaffold(
@@ -42,85 +63,92 @@ class _HomeState extends State<Home> {
                 padding: EdgeInsets.fromLTRB(5.0, 5.0, 5.0, 5.0),
                 child: LayoutBuilder(
                   builder: (context, constraints) {
-                    const lines = 10;
                     var cellSize = _getSmallestDimension(
                             constraints.maxHeight, constraints.maxWidth) /
                         lines;
-                    return _createBoard(lines, cellSize);
+                    return _drawBoard(lines, cellSize);
                   },
                 ))));
   }
 
-  Widget _createBoard(int lines, double cellSize) {
+  Widget _drawBoard(int lines, double cellSize) {
+    _createBoard(cellSize);
+    _createControllers(5, buttonCb());
 
     return Column(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
       GridView.count(
         crossAxisCount: lines,
         shrinkWrap: true,
         physics: NeverScrollableScrollPhysics(),
-        children: _createCells(lines * lines, cellSize),
+        children: board
       ),
       Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: _createControllers(5),)
-    ]);
-  }
-
-  List<Widget> _createCells(int cellCount, double cellSize) {
-    List<Widget>cells = List.generate(
-        cellCount,
-        (int index) =>
-            board[index].singleColoredCellBuilder(cellSize, Colors.deepPurple, index));
-    return cells;
-  }
-
-  List<Widget> _createControllers(int numColors) {
-    Color getColor(int offset) {
-      List<Color> colors = [Colors.red, Colors.green,
-        Colors.blue, Colors.purple, Colors.orange];
-      return colors[offset];
-    }
-
-    List<Widget> controls = List.generate(
-        numColors,
-        (int controlID) => GestureDetector(
-                  child: Container(
-                height: 50,
-                width: 50,
-                color: getColor(controlID),
-              ),
-              onTap: () async {
-                print("Control $controlID pressed");
-                print(board[0]);
-              },
-        ));
-
-    return controls;
+      children: controllers
+    )]);
   }
 }
 
-class BoardCell {
+class BoardCell extends StatefulWidget {
   final int cellIndex;
+  final Color cellColor;
+  final double cellSize;
 
-  BoardCell(this.cellIndex);
+  @override
+  _BoardCellState createState() => _BoardCellState();
 
-  Widget singleColoredCellBuilder(
-      var cellSize, MaterialColor color, int index) {
+  BoardCell(this.cellIndex, this.cellColor, this.cellSize);
+}
+
+class _BoardCellState extends State<BoardCell> {
+  Widget _singleColoredCellBuilder() {
 
     return GestureDetector(
       child: Column(
         children: <Widget>[
           SizedBox(
-              width: cellSize,
-              height: cellSize,
+              width: widget.cellSize,
+              height: widget.cellSize,
               child: DecoratedBox(
                 decoration: BoxDecoration(
-                    color: color,
+                    color: widget.cellColor,
                     border: Border.all(width: 0.5, color: Colors.white)),
               )),
         ],
       ),
       onTap: () async {
-        print("Tapped cellIndex: $cellIndex");
+        print("Tapped cellIndex: ${widget.cellIndex}");
+      },
+    );
+  }
+  @override
+  Widget build(BuildContext context) {
+    return _singleColoredCellBuilder();
+  }
+}
+
+class CellController extends StatefulWidget {
+  final int controllerId;
+  final Color controllerColor;
+  final Function callback;
+
+  CellController(this.controllerId, this.controllerColor, this.callback);
+
+  @override
+  _CellControllerState createState() => _CellControllerState();
+}
+
+class _CellControllerState extends State<CellController> {
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+        child: Container(
+        height: 50,
+        width: 50,
+        color: widget.controllerColor,
+      ),
+      onTap: () async {
+        print("Control ${widget.controllerId} pressed");
+        widget.callback();
       },
     );
   }
