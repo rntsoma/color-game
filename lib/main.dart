@@ -9,8 +9,7 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  List<BoardCell> board = List();
-  List<CellController> controllers = List();
+  Solver solv;
 
   double _getSmallestDimension(var height, var width) {
     double ret;
@@ -19,10 +18,20 @@ class _HomeState extends State<Home> {
     return ret;
   }
 
-  void _createBoard(double cellSize){
-    for (int i=0; i<100; i++) {
-      board.add(BoardCell(i, Colors.deepPurple, cellSize));
+  List<BoardCell> _createBoard(double cellSize, int lines){
+    List<BoardCell> board = List();
+    var generatedBoard;
+
+    generatedBoard = solv.generateBoard();
+
+    /// XXX Refactor this on both sides
+    for (int i=0; i<lines; i++) {
+      for (int j=0; j<lines; j++) {
+        board.add(BoardCell(generatedBoard[i][j], cellSize));
+      }
     }
+  
+    return board;
   }
 
   Color _getColor(int offset) {
@@ -31,22 +40,19 @@ class _HomeState extends State<Home> {
     return colors[offset];
   }
 
-  void _createControllers(int count) {
+  List<CellController> _createControllers(int count, Function cb) {
+    List<CellController> controllers = List();
+
     for (int i=0; i<count; i++){
-      controllers.add(CellController(i, _getColor(i)));
+      controllers.add(CellController(i, _getColor(i), cb));
     }
+    return controllers;
   }
 
   @override
   Widget build(BuildContext context) {
-    // Solver solv = Solver(3);
-    // solv.generateBoard();
-    // print("Print initial board:");
-    // solv.printMatrix();
-    // print("Call solver");
-    // solv.debugTrivialBoard();
-
     const lines = 10;
+    solv = Solver(lines);
 
     return MaterialApp(
         home: Scaffold(
@@ -62,37 +68,37 @@ class _HomeState extends State<Home> {
                     var cellSize = _getSmallestDimension(
                             constraints.maxHeight, constraints.maxWidth) /
                         lines;
-                    return _drawBoard(lines, cellSize);
+                    return _drawBoard(lines, cellSize,
+                      (index) async {
+                        print("index pressed: $index");
+                        solv.treatInput(index);
+                    });
                   },
                 ))));
   }
 
-  Widget _drawBoard(int lines, double cellSize) {
-    _createBoard(cellSize);
-    _createControllers(5);
-
+  Widget _drawBoard(int lines, double cellSize, Function cb) {
     return Column(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
       GridView.count(
         crossAxisCount: lines,
         shrinkWrap: true,
         physics: NeverScrollableScrollPhysics(),
-        children: board
+        children:  _createBoard(cellSize, lines)
       ),
       Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: controllers
+      children: _createControllers(5, cb)
     )]);
   }
 }
 
 class BoardCell extends StatefulWidget {
-  final int cellIndex;
   final Color cellColor;
   final double cellSize;
 
   @override
   _BoardCellState createState() => _BoardCellState();
 
-  BoardCell(this.cellIndex, this.cellColor, this.cellSize);
+  BoardCell(this.cellColor, this.cellSize);
 }
 
 class _BoardCellState extends State<BoardCell> {
@@ -111,9 +117,6 @@ class _BoardCellState extends State<BoardCell> {
               )),
         ],
       ),
-      onTap: () async {
-        print("Tapped cellIndex: ${widget.cellIndex}");
-      },
     );
   }
   @override
@@ -122,19 +125,12 @@ class _BoardCellState extends State<BoardCell> {
   }
 }
 
-class CellController extends StatefulWidget {
+class CellController extends StatelessWidget {
   final int controllerId;
   final Color controllerColor;
+  final Function cb;
 
-  CellController(this.controllerId, this.controllerColor);
-
-  @override
-  _CellControllerState createState() => _CellControllerState(controllerColor);
-}
-
-class _CellControllerState extends State<CellController> {
-  Color controllerColor;
-  _CellControllerState(this.controllerColor);
+  CellController(this.controllerId, this.controllerColor, this.cb);
 
   @override
   Widget build(BuildContext context) {
@@ -145,11 +141,8 @@ class _CellControllerState extends State<CellController> {
         color: controllerColor,
       ),
       onTap: () async {
-        print("Control ${widget.controllerId} pressed");
-        setState(() {
-          controllerColor = Colors.green;
-          print("Hi");
-        });
+        print("Control $controllerId pressed");
+        cb(controllerId);
       },
     );
   }
