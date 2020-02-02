@@ -31,14 +31,10 @@ class _HomeState extends State<Home> {
     return colors[offset];
   }
 
-  void _createControllers(int count, Function buttonCb) {
+  void _createControllers(int count) {
     for (int i=0; i<count; i++){
-      controllers.add(CellController(i, _getColor(i), buttonCb));
+      controllers.add(CellController(i, _getColor(i)));
     }
-  }
-
-  void buttonCb(){
-    print("buttonCb called");
   }
 
   @override
@@ -73,7 +69,7 @@ class _HomeState extends State<Home> {
 
   Widget _drawBoard(int lines, double cellSize) {
     _createBoard(cellSize);
-    _createControllers(5, buttonCb());
+    _createControllers(5);
 
     return Column(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
       GridView.count(
@@ -129,26 +125,31 @@ class _BoardCellState extends State<BoardCell> {
 class CellController extends StatefulWidget {
   final int controllerId;
   final Color controllerColor;
-  final Function callback;
 
-  CellController(this.controllerId, this.controllerColor, this.callback);
+  CellController(this.controllerId, this.controllerColor);
 
   @override
-  _CellControllerState createState() => _CellControllerState();
+  _CellControllerState createState() => _CellControllerState(controllerColor);
 }
 
 class _CellControllerState extends State<CellController> {
+  Color controllerColor;
+  _CellControllerState(this.controllerColor);
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
         child: Container(
         height: 50,
         width: 50,
-        color: widget.controllerColor,
+        color: controllerColor,
       ),
       onTap: () async {
         print("Control ${widget.controllerId} pressed");
-        widget.callback();
+        setState(() {
+          controllerColor = Colors.green;
+          print("Hi");
+        });
       },
     );
   }
