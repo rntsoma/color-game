@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_squares/models/solver.dart';
 
 void main() => runApp(Home());
@@ -9,7 +10,8 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  Solver solv;
+  Solver solv = Solver(10);
+  List<BoardCell> board = [];
 
   double _getSmallestDimension(var height, var width) {
     double ret;
@@ -18,19 +20,18 @@ class _HomeState extends State<Home> {
     return ret;
   }
 
+  /// XXX Refactor this on both sides
   List<BoardCell> _createBoard(double cellSize, int lines){
-    List<BoardCell> board = List();
-    var generatedBoard;
+    if (board.isEmpty){
+      var generatedBoard;
 
-    generatedBoard = solv.generateBoard();
-
-    /// XXX Refactor this on both sides
-    for (int i=0; i<lines; i++) {
-      for (int j=0; j<lines; j++) {
-        board.add(BoardCell(generatedBoard[i][j], cellSize));
+      generatedBoard = solv.generateBoard();
+      for (int i=0; i<lines; i++) {
+        for (int j=0; j<lines; j++) {
+          board.add(BoardCell(generatedBoard[i][j], cellSize));
+        }
       }
     }
-  
     return board;
   }
 
@@ -52,7 +53,6 @@ class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
     const lines = 10;
-    solv = Solver(lines);
 
     return MaterialApp(
         home: Scaffold(
@@ -71,19 +71,22 @@ class _HomeState extends State<Home> {
                     return _drawBoard(lines, cellSize,
                       (index) async {
                         print("index pressed: $index");
-                        solv.treatInput(index);
+                        setState(() {
+                          solv.treatInput(index);
+                        });
                     });
                   },
                 ))));
   }
 
   Widget _drawBoard(int lines, double cellSize, Function cb) {
+    board = _createBoard(cellSize, lines);
     return Column(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
       GridView.count(
         crossAxisCount: lines,
         shrinkWrap: true,
         physics: NeverScrollableScrollPhysics(),
-        children:  _createBoard(cellSize, lines)
+        children: board
       ),
       Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: _createControllers(5, cb)
