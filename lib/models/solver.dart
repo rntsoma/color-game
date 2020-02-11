@@ -110,22 +110,6 @@ class Solver {
     _matrix[row][col] = newColor;
   }
 
-  // debug methods
-  void debugTrivialBoard() {
-    var visitedMatrix = getEmptyBoolArray();
-
-    _visitCel(_matrix[0][0], Colors.blue, 0, 0, visitedMatrix);
-    printMatrix();
-    visitedMatrix = getEmptyBoolArray();
-
-    _visitCel(_matrix[0][0], Colors.red, 0, 0, visitedMatrix);
-    printMatrix();
-    visitedMatrix = getEmptyBoolArray();
-
-    _visitCel(_matrix[0][0], Colors.purple, 0, 0, visitedMatrix);
-    printMatrix();
-  }
-
   void printMatrix() {
     print(_matrix);
   }

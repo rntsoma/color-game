@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_squares/models/solver.dart';
+import 'package:flutter_squares/ui/cellcontroller.dart';
+import 'package:flutter_squares/ui/boardcell.dart';
 
 void main() => runApp(Home());
 
@@ -21,7 +23,7 @@ class _HomeState extends State<Home> {
   }
 
   /// XXX Refactor this on both sides
-  List<BoardCell> _createBoard(double cellSize, int lines){
+  List<BoardCell> _getBoardUI(double cellSize, int lines){
     if (board.isEmpty){
       var generatedBoard;
 
@@ -50,6 +52,24 @@ class _HomeState extends State<Home> {
     return controllers;
   }
 
+  Future<void> controllerCB(var index, var lines, var cellSize) async{
+    print("index pressed: $index");
+    setState(() {
+      solv.treatInput(index);
+      print("board not empty");
+      var updatedBoard;
+      List<BoardCell> retBoard = [];
+
+      updatedBoard = solv.getCurrentBoard();
+      for (int i=0; i<lines; i++) {
+        for (int j=0; j<lines; j++) {
+          retBoard.add(BoardCell(updatedBoard[i][j], cellSize));
+        }
+      }
+      board = retBoard;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     const lines = 10;
@@ -70,17 +90,14 @@ class _HomeState extends State<Home> {
                         lines;
                     return _drawBoard(lines, cellSize,
                       (index) async {
-                        print("index pressed: $index");
-                        setState(() {
-                          solv.treatInput(index);
-                        });
-                    });
+                        controllerCB(index, lines, cellSize);}
+                    );
                   },
                 ))));
   }
 
   Widget _drawBoard(int lines, double cellSize, Function cb) {
-    board = _createBoard(cellSize, lines);
+    board = _getBoardUI(cellSize, lines);
     return Column(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
       GridView.count(
         crossAxisCount: lines,
@@ -91,62 +108,5 @@ class _HomeState extends State<Home> {
       Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: _createControllers(5, cb)
     )]);
-  }
-}
-
-class BoardCell extends StatefulWidget {
-  final Color cellColor;
-  final double cellSize;
-
-  @override
-  _BoardCellState createState() => _BoardCellState();
-
-  BoardCell(this.cellColor, this.cellSize);
-}
-
-class _BoardCellState extends State<BoardCell> {
-  Widget _singleColoredCellBuilder() {
-
-    return GestureDetector(
-      child: Column(
-        children: <Widget>[
-          SizedBox(
-              width: widget.cellSize,
-              height: widget.cellSize,
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                    color: widget.cellColor,
-                    border: Border.all(width: 0.5, color: Colors.white)),
-              )),
-        ],
-      ),
-    );
-  }
-  @override
-  Widget build(BuildContext context) {
-    return _singleColoredCellBuilder();
-  }
-}
-
-class CellController extends StatelessWidget {
-  final int controllerId;
-  final Color controllerColor;
-  final Function cb;
-
-  CellController(this.controllerId, this.controllerColor, this.cb);
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-        child: Container(
-        height: 50,
-        width: 50,
-        color: controllerColor,
-      ),
-      onTap: () async {
-        print("Control $controllerId pressed");
-        cb(controllerId);
-      },
-    );
   }
 }
